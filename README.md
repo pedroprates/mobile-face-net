@@ -1,3 +1,3 @@
-# Facial Recognition
+# Face Recognition
 
-Creating a **Facial Recognition** system with low computational cost. 
+Creating a **Face Recognition** system with low computational cost. 
