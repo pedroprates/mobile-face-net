@@ -1,3 +1,6 @@
 models/
 .DS_Store
 .ipynb_checkpoints/
+face-recognition/
+datasets/
+.vscode/
