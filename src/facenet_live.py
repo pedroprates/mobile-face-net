@@ -32,6 +32,8 @@ def main(args):
         # Detect faces on the frame
         rects = detector.detect_faces(gray)
         face_images = detector.extract_faces(rgb, rects)
+
+        # Recognize the images
         
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
