@@ -4,3 +4,4 @@ models/
 face-recognition/
 datasets/
 .vscode/
+src/detect_face/__pycache__/
