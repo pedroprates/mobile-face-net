@@ -3,26 +3,28 @@ import imutils
 import argparse
 import sys
 from imutils.video import VideoStream, FPS
-import facenet
 import pickle
 import time
 from detect_face.face_detector import FaceDetector
 import tensorflow as tf
 import numpy as np
+import utils
 
 
 def main(args):
     
     print("[STARTING] Facenet ResNet v1 for Facial Recognition")
     print(".\n.\n.")
-    print("[LOADING] Loading encondings and face detector...")
-    data = pickle.loads(open(args["encondings"], "rb").read())
+    print("[LOADING] Loading face detector...")
     face_detector = cv2.CascadeClassifier(args["cascade"])
     detector = FaceDetector(args["cascade"])
     
+    print("[LOADING] Loading the faces dataset...")
+    dataset, name_to_idx, idx_to_name = utils.build_dataset(args["dataset"])
+
     print("[LOADING] Loading the Convolutional Neural Network model...")
     sess = tf.Session()
-    facenet.load_model(args["model"])
+    utils.load_model(args["model"])
 
     images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
     embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
@@ -36,7 +38,7 @@ def main(args):
 
     while True:
         frame = vs.read()
-        frame = imutils.resize(frame, width=500) # Width of the frame is confurable
+        frame = imutils.resize(frame, width=500) # Width of the frame is configurable
         
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -52,9 +54,29 @@ def main(args):
             embeddings_array = np.zeros((nrof_faces, embedding_size))
             embeddings_array = sess.run(embeddings, feed_dict=feed_dict)
 
+            for idx, embedding in enumerate(embeddings_array):
+                predicted = utils.predict_face(dataset, name_to_idx, idx_to_name, embedding)
+                x, y, w, h = rects[idx]
+                color = (255, 0, 0) if predicted == "Unknown" else (0, 255, 0)
+                cv2.rectangle(frame, (x, y+h), (x+w, y), color, 2)
+                top = y+h-15 if y+h-15 > 15 else y+h+15
+                cv2.putText(frame, predicted, (x, top), cv2.FONT_HERSHEY_SIMPLEX, 0.75, color, 2)
+
+        # Display the image
+        cv2.imshow("Frame", frame)
+
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             break
+
+        fps.update()
+
+    fps.stop()
+    print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
+    print("[INFO] approximated FPS: {:.2f}fps".format(fps.fps()))
+
+    cv2.destroyAllWindows()
+    vs.stop()
 
 def parse_arguments(argv):
     """ Parsing arguments to run variables to the main
@@ -66,11 +88,11 @@ def parse_arguments(argv):
                         type=str,
                         default="../models/HaarCascade/haarcascade_frontalface_default.xml",
                         help="Path to the face cascade config files")
-    parser.add_argument("--e",
-                        "-encondings",
+    parser.add_argument("--d",
+                        "-dataset",
                         type=str,
-                        default="../datasets/face-recognition-data/encodings.pickle",
-                        help="Path to the serialized faces database")
+                        default="../datasets/tcc",
+                        help="Path datasets source folder")
 
     parser.add_argument("--m",
                         "-model",
