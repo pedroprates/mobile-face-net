@@ -24,7 +24,7 @@ class FaceDetector:
             h_margin = int(0.1*w)
             v_margin = int(0.1*h)
 
-            cropped_image = frame[y-v_margin:y+h+v_margin, x-h_margin:x+w+h_margin]
+            cropped_image = frame[y:y+h, x:x+w]
             images[idx,:,:,:] = cv2.resize(cropped_image, size)
         
         return images

@@ -38,7 +38,7 @@ def distance(embeddings1, embeddings2, distance_metric='euclidean'):
         dot = np.sum(np.multiply(embeddings1, embeddings2), axis=1)
         norm = np.linalg.norm(embeddings1, axis=1) * np.linalg.norm(embeddings2, axis=1)
         similarity = dot / norm
-        dist = np.arccos(similarity) / math.print
+        dist = np.arccos(similarity) / math.pi
 
     return dist
 
@@ -54,11 +54,14 @@ def build_dataset(path):
 
     people = os.listdir(path)
     for person in people:
+        if person.startswith('.'):
+            continue
+
         embs = np.load(path + '/' + person + '/' + person + '.npy')
         dataset[person] = embs
 
     names = iter(dataset.keys())
-    idxs = iter(np.arange(dataset.keys()))
+    idxs = iter(np.arange(len(dataset)))
 
     names_to_idx = dict(zip(names, idxs))
     idx_to_names = dict([x, v] for v, x in names_to_idx.items())
@@ -113,5 +116,7 @@ def predict_face(dataset, name_to_idx, idx_to_name, face, threshold=.1, distance
     idx_min = distances.argmin()
     if distances[idx_min] > threshold:
         return 'Unknown'
+    print(idx_to_name)
+    print(distances)
 
     return idx_to_name[idx_min].replace('_', ' ')

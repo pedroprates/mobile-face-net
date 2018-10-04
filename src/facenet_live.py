@@ -32,7 +32,8 @@ def main(args):
     embedding_size = embeddings.get_shape()[1]
 
     print("[LOADING] Starting the video stream...")
-    vs = VideoStream(usePiCamera=True).start()
+    # vs = VideoStream(usePiCamera=True).start()
+    vs = VideoStream(src=0).start()
     time.sleep(2.0)
     fps = FPS().start()
 
@@ -55,7 +56,8 @@ def main(args):
             embeddings_array = sess.run(embeddings, feed_dict=feed_dict)
 
             for idx, embedding in enumerate(embeddings_array):
-                predicted = utils.predict_face(dataset, name_to_idx, idx_to_name, embedding)
+                embedding = embedding.reshape((1, *embedding.shape))
+                predicted = utils.predict_face(dataset, name_to_idx, idx_to_name, embedding, distance_metric='cosine')
                 x, y, w, h = rects[idx]
                 color = (255, 0, 0) if predicted == "Unknown" else (0, 255, 0)
                 cv2.rectangle(frame, (x, y+h), (x+w, y), color, 2)
@@ -78,29 +80,29 @@ def main(args):
     cv2.destroyAllWindows()
     vs.stop()
 
-def parse_arguments(argv):
+def parse_arguments():
     """ Parsing arguments to run variables to the main
     """
     parser = argparse.ArgumentParser()
     
-    parser.add_argument("--c",
-                        "-cascade",
+    parser.add_argument("-c",
+                        "--cascade",
                         type=str,
                         default="../models/HaarCascade/haarcascade_frontalface_default.xml",
                         help="Path to the face cascade config files")
-    parser.add_argument("--d",
-                        "-dataset",
+    parser.add_argument("-d",
+                        "--dataset",
                         type=str,
                         default="../datasets/tcc",
                         help="Path datasets source folder")
 
-    parser.add_argument("--m",
-                        "-model",
+    parser.add_argument("-m",
+                        "--model",
                         type=str,
                         default="models/facenet/201820180402-114759/20180402-114759.pb",
                         help="Path to the CNN model")
 
-    return parser.parse_args(argv)
+    return vars(parser.parse_args())
 
 if __name__ == "__main__":
-    main(parse_arguments(sys.argv[1:]))
+    main(parse_arguments())
