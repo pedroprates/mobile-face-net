@@ -361,6 +361,7 @@ def split_dataset(dataset, split_ratio, min_nrof_images_per_class, mode):
         raise ValueError('Invalid train/test split mode "%s"' % mode)
     return train_set, test_set
 
+
 def load_model(model, input_map=None):
     # Check if the model is a model directory (containing a metagraph and a checkpoint file)
     #  or if it is a protobuf file with a frozen graph
@@ -380,7 +381,8 @@ def load_model(model, input_map=None):
       
         saver = tf.train.import_meta_graph(os.path.join(model_exp, meta_file), input_map=input_map)
         saver.restore(tf.get_default_session(), os.path.join(model_exp, ckpt_file))
-    
+
+
 def get_model_filenames(model_dir):
     files = os.listdir(model_dir)
     meta_files = [s for s in files if s.endswith('.meta')]
@@ -404,7 +406,8 @@ def get_model_filenames(model_dir):
                 max_step = step
                 ckpt_file = step_str.groups()[0]
     return meta_file, ckpt_file
-  
+
+
 def distance(embeddings1, embeddings2, distance_metric=0):
     if distance_metric==0:
         # Euclidian distance
@@ -420,6 +423,7 @@ def distance(embeddings1, embeddings2, distance_metric=0):
         raise 'Undefined distance metric %d' % distance_metric 
         
     return dist
+
 
 def calculate_roc(thresholds, embeddings1, embeddings2, actual_issame, nrof_folds=10, distance_metric=0, subtract_mean=False):
     assert(embeddings1.shape[0] == embeddings2.shape[0])
@@ -454,6 +458,7 @@ def calculate_roc(thresholds, embeddings1, embeddings2, actual_issame, nrof_fold
         fpr = np.mean(fprs,0)
     return tpr, fpr, accuracy
 
+
 def calculate_accuracy(threshold, dist, actual_issame):
     predict_issame = np.less(dist, threshold)
     tp = np.sum(np.logical_and(predict_issame, actual_issame))
@@ -467,7 +472,6 @@ def calculate_accuracy(threshold, dist, actual_issame):
     return tpr, fpr, acc
 
 
-  
 def calculate_val(thresholds, embeddings1, embeddings2, actual_issame, far_target, nrof_folds=10, distance_metric=0, subtract_mean=False):
     assert(embeddings1.shape[0] == embeddings2.shape[0])
     assert(embeddings1.shape[1] == embeddings2.shape[1])
