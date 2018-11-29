@@ -41,6 +41,7 @@ from sklearn import metrics
 from scipy.optimize import brentq
 from scipy import interpolate
 
+
 def main(args):
   
     with tf.Graph().as_default():
@@ -86,7 +87,7 @@ def main(args):
 def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phase_train_placeholder, batch_size_placeholder, control_placeholder,
         embeddings, labels, image_paths, actual_issame, batch_size, nrof_folds, distance_metric, subtract_mean, use_flipped_images, use_fixed_image_standardization):
     # Run forward pass to calculate embeddings
-    print('Runnning forward pass on LFW images')
+    print('Running forward pass on LFW images')
     
     # Enqueue one epoch of image paths and labels
     nrof_embeddings = len(actual_issame)*2  # nrof_pairs * nrof_images_per_pair
@@ -124,8 +125,16 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
     else:
         embeddings = emb_array
 
-    assert np.array_equal(lab_array, np.arange(nrof_images))==True, 'Wrong labels used for evaluation, possibly caused by training examples left in the input pipeline'
-    tpr, fpr, accuracy, val, val_std, far = lfw.evaluate(embeddings, actual_issame, nrof_folds=nrof_folds, distance_metric=distance_metric, subtract_mean=subtract_mean)
+    np.save('/Users/pedroprates/Google Drive/FaceRecognition/datasets/all_lfw.npy', embeddings)
+
+    assert np.array_equal(lab_array, np.arange(nrof_images))==True, 'Wrong labels used for evaluation, ' \
+                                                                    'possibly caused by training examples left ' \
+                                                                    'in the input pipeline'
+    tpr, fpr, accuracy, val, val_std, far = lfw.evaluate(embeddings,
+                                                         actual_issame,
+                                                         nrof_folds=nrof_folds,
+                                                         distance_metric=distance_metric,
+                                                         subtract_mean=subtract_mean)
     
     print('Accuracy: %2.5f+-%2.5f' % (np.mean(accuracy), np.std(accuracy)))
     print('Validation rate: %2.5f+-%2.5f @ FAR=%2.5f' % (val, val_std, far))
@@ -134,7 +143,8 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
     print('Area Under Curve (AUC): %1.3f' % auc)
     eer = brentq(lambda x: 1. - x - interpolate.interp1d(fpr, tpr)(x), 0., 1.)
     print('Equal Error Rate (EER): %1.3f' % eer)
-    
+
+
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     
@@ -147,7 +157,7 @@ def parse_arguments(argv):
     parser.add_argument('--image_size', type=int,
         help='Image size (height, width) in pixels.', default=160)
     parser.add_argument('--lfw_pairs', type=str,
-        help='The file containing the pairs to use for validation.', default='data/pairs.txt')
+        help='The file containing the pairs to use for validation.', default='../data/pairs.txt')
     parser.add_argument('--lfw_nrof_folds', type=int,
         help='Number of folds to use for cross validation. Mainly used for testing.', default=10)
     parser.add_argument('--distance_metric', type=int,
@@ -159,6 +169,7 @@ def parse_arguments(argv):
     parser.add_argument('--use_fixed_image_standardization', 
         help='Performs fixed standardization of images.', action='store_true')
     return parser.parse_args(argv)
+
 
 if __name__ == '__main__':
     main(parse_arguments(sys.argv[1:]))
